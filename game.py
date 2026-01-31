@@ -1,4 +1,5 @@
 import pygame
+import solver
 
 pygame.init()
 
@@ -11,6 +12,7 @@ FORUMGOLD = (255, 227, 132)
 BANANA = (227,207,87)
 BLACK = (0, 0, 0)
 DOUGELLO = (235,142,85)
+BLUE = (0,0,255)
 
 WIDTH = 50       
 HEIGHT = 50      
@@ -47,6 +49,8 @@ for row in range(ROWS):
 
 sample_data = [[[0]*3 for _ in range(3)] for _ in range(3)]
 
+
+
 clock = pygame.time.Clock()
 running = True
 LOCK = 0
@@ -74,24 +78,45 @@ while running:
             elif lockbotx <= pos[0] < lockbotx + LOCKBOTWIDTH and lockboty <= pos[1] < lockboty + HEIGHT:
                 LOCK = (LOCK + 1) % 2
             elif 1 <= sx <= 3 and LOCK == 0:
-                s_col = sx - 1  # 轉成 0~2 的 index
-                target_s = -1   # 第幾個 sample (0,1,2)
-                s_row = -1      # sample 裡的第幾列 (0~2)
+                s_col = sx - 1  
+                target_s = -1  
+                s_row = -1     
 
-                if 0 <= sy <= 2:      # 第一個 Sample
+                if 0 <= sy <= 2:     
                     target_s, s_row = 0, sy
-                elif 4 <= sy <= 6:    # 第二個 Sample
+                elif 4 <= sy <= 6:   
                     target_s, s_row = 1, sy - 4
-                elif 8 <= sy <= 10:   # 第三個 Sample
+                elif 8 <= sy <= 10:   
                     target_s, s_row = 2, sy - 8
                 
-                # 如果有點到有效的格子，就切換 0/1
                 if target_s != -1:
                     sample_data[target_s][s_row][s_col] = 1 - sample_data[target_s][s_row][s_col]
             '''
             elif 0 < sx <= 5 and sy == 0:
                 SAMPLE = sx
             '''
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                 solver.reset(grid)
+
+            elif event.key == pygame.K_SPACE: 
+                solver.turn_b_to_r(grid)
+
+                counts = []
+                for s in sample_data:
+                    count = sum(sum(row) for row in s)
+                    counts.append(count)
+            
+                result = solver.find_first_solution(grid, sample_data)
+            
+                if result:
+                    idx, r, c, shape = result
+                
+                    for dr, dc in shape:
+                        grid[r + dr][c + dc] = 2 
+                else:
+                    print("fail")
+        
 
     screen.fill(WHITE) 
     #deal hover and color
@@ -104,6 +129,8 @@ while running:
                 color = RED
                 if row == hover_row and column == hover_col:
                     color = LRED
+            elif grid[row][column] == 2:
+                color = BLUE
             elif row == hover_row and column == hover_col:
                 color = LGRAY
             else :
@@ -156,30 +183,23 @@ while running:
     msx = (mpos[0] - (WIDTH + MARGIN) * COLS - MARGIN - BIGM) // (WIDTH + MARGIN)
     msy = mpos[1] // (HEIGHT + MARGIN)
 
-    # 定義三個 Sample 的起始 Y 位置 (對應 j 的位移: 0, 3, 7)
     offsets = [0, 3, 7] 
 
-    for k in range(3): # k 代表第幾個 Sample (0, 1, 2)
+    for k in range(3): 
         for i in range(1, 4):
             for j in range(1, 4):
-                # 算出方格在畫面上的位置
-                visual_y_offset = j + offsets[k] # 換算實際格數位置 (Ex: Sample2 是 j+3)
-                if k == 0: visual_y_offset = j-1 # Sample1 特殊處理 (原本是 j-1)
+                visual_y_offset = j + offsets[k] 
+                if k == 0: visual_y_offset = j-1 
                 
                 srect_x = (MARGIN + WIDTH) * (COLS + i) + MARGIN + BIGM
                 srect_y = (MARGIN + WIDTH) * visual_y_offset + MARGIN 
                 
-                # Sample 1 的 y 算法在你原本程式碼是 (j-1)，後面兩個是 (j+3) 和 (j+7)
-                # 為了配合你的排版習慣，這裡微調座標算法：
                 if k == 0: srect_y = (MARGIN + WIDTH) * (j-1) + MARGIN
                 
                 s_rect = pygame.Rect(srect_x, srect_y, WIDTH, HEIGHT)
                 
-                # 決定顏色
                 is_on = sample_data[k][j-1][i-1] == 1
                 
-                # 決定是否 Hover (滑鼠座標對應)
-                # Sample 1 的 y index 是 0~2, Sample 2 是 4~6, Sample 3 是 8~10
                 check_y = j-1 if k==0 else (j+3 if k==1 else j+7)
                 is_hover = (msx == i and msy == check_y)
 
