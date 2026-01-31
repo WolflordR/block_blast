@@ -18,7 +18,7 @@ MARGIN = 5
 BIGM = 20    
 ROWS = 8         
 COLS = 8         
-BUTTON = 150
+BUTTON = 200
 BCKSAMPLE = 450
 
 SAMPLE = 1
@@ -26,7 +26,7 @@ SAMPLE = 1
 
 font = pygame.font.SysFont("Arial", 20, bold=True)
 
-# 計算視窗總大小
+#window
 WINDOW_SIZE = [
     (WIDTH + MARGIN) * COLS + MARGIN + BCKSAMPLE,
     (HEIGHT + MARGIN) * ROWS + MARGIN + BUTTON
@@ -41,38 +41,30 @@ pygame.display.set_caption("8x8 格子狀態切換測試")
 
 grid = []
 for row in range(ROWS):
-    grid.append([])          # 建立新的一列
+    grid.append([])          
     for column in range(COLS):
-        grid[row].append(0)  # 在這一列加入 0
+        grid[row].append(0)  
+
+sample_data = [[[0]*3 for _ in range(3)] for _ in range(3)]
 
 clock = pygame.time.Clock()
 running = True
 LOCK = 0
-# --- 3. 遊戲主迴圈 ---
+#main
 while running:
-    
-    # --- 事件處理 ---
-    # pygame.event.get() 會回傳這段時間內發生的所有事 (滑鼠移動、按鍵盤...)
+    #event
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        # 偵測滑鼠按下事件
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # 取得滑鼠座標
             pos = pygame.mouse.get_pos()
             
-            # --- 座標轉換邏輯 ---
-            # 像素座標 -> 格子索引
-            # 公式：(滑鼠座標) // (格子寬 + 間距)
             column = pos[0] // (WIDTH + MARGIN)
             row = pos[1] // (HEIGHT + MARGIN)
 
             sx = (pos[0] - (WIDTH + MARGIN) * COLS - MARGIN - BIGM) // (WIDTH + MARGIN)
             sy = pos[1] // (HEIGHT + MARGIN)
-            # 為了防止點到邊界外報錯，加一個檢查
             if 0 <= row < ROWS and 0 <= column < COLS and LOCK == 0:
-                # --- 切換狀態邏輯 ---
-                # 如果是 0 變 1，如果是 1 變 0
                 if grid[row][column] == 0:
                     grid[row][column] = 1
                 else:
@@ -81,20 +73,30 @@ while running:
             
             elif lockbotx <= pos[0] < lockbotx + LOCKBOTWIDTH and lockboty <= pos[1] < lockboty + HEIGHT:
                 LOCK = (LOCK + 1) % 2
+            elif 1 <= sx <= 3 and LOCK == 0:
+                s_col = sx - 1  # 轉成 0~2 的 index
+                target_s = -1   # 第幾個 sample (0,1,2)
+                s_row = -1      # sample 裡的第幾列 (0~2)
+
+                if 0 <= sy <= 2:      # 第一個 Sample
+                    target_s, s_row = 0, sy
+                elif 4 <= sy <= 6:    # 第二個 Sample
+                    target_s, s_row = 1, sy - 4
+                elif 8 <= sy <= 10:   # 第三個 Sample
+                    target_s, s_row = 2, sy - 8
+                
+                # 如果有點到有效的格子，就切換 0/1
+                if target_s != -1:
+                    sample_data[target_s][s_row][s_col] = 1 - sample_data[target_s][s_row][s_col]
             '''
             elif 0 < sx <= 5 and sy == 0:
                 SAMPLE = sx
             '''
 
-
-
-    # --- 繪圖處理 ---
-    screen.fill(WHITE) # 清空背景
-
-    # 雙層迴圈把 8x8 的格子畫出來
+    screen.fill(WHITE) 
+    #deal hover and color
     for row in range(ROWS):
         for column in range(COLS):
-            # 決定顏色：根據 grid[row][column] 的值
             mouse_pos = pygame.mouse.get_pos()
             hover_col = mouse_pos[0] // (WIDTH + MARGIN)
             hover_row = mouse_pos[1] // (HEIGHT + MARGIN)
@@ -106,11 +108,11 @@ while running:
                 color = LGRAY
             else :
                 color = GRAY
-            # 計算矩形要在螢幕上的位置
+            
             rect_x = (MARGIN + WIDTH) * column + MARGIN
             rect_y = (MARGIN + HEIGHT) * row + MARGIN
             
-            # 畫出矩形
+            
             pygame.draw.rect(screen, color, [rect_x, rect_y, WIDTH, HEIGHT])
     #draw botton for lock
     mouse_pos = pygame.mouse.get_pos()
@@ -127,10 +129,7 @@ while running:
         text_surface = font.render("LOCK", True, BLACK) 
     else :
         text_surface = font.render("UNLOCK", True, BLACK) 
-    # 取得文字的矩形外框，並設定它的中心點 = 按鈕的中心點
     text_rect = text_surface.get_rect(center=bot_rect.center)
-    
-    # 貼上文字
     screen.blit(text_surface, text_rect)
 
     #sample
@@ -152,16 +151,44 @@ while running:
         case 2: 
             print(2)
     '''
-    for i in range(1,4):
-        for j in range(1,4):
-            srect_x = (MARGIN + WIDTH) * (COLS + i) + MARGIN + BIGM
-            srect_y = (MARGIN + WIDTH) * (j) + MARGIN 
-            s_rect = pygame.Rect(srect_x, srect_y, WIDTH, HEIGHT)
-            scolor = GRAY
-            pygame.draw.rect(screen, color, s_rect)
-            
-            
-    # 更新畫面
+
+    mpos = pygame.mouse.get_pos()
+    msx = (mpos[0] - (WIDTH + MARGIN) * COLS - MARGIN - BIGM) // (WIDTH + MARGIN)
+    msy = mpos[1] // (HEIGHT + MARGIN)
+
+    # 定義三個 Sample 的起始 Y 位置 (對應 j 的位移: 0, 3, 7)
+    offsets = [0, 3, 7] 
+
+    for k in range(3): # k 代表第幾個 Sample (0, 1, 2)
+        for i in range(1, 4):
+            for j in range(1, 4):
+                # 算出方格在畫面上的位置
+                visual_y_offset = j + offsets[k] # 換算實際格數位置 (Ex: Sample2 是 j+3)
+                if k == 0: visual_y_offset = j-1 # Sample1 特殊處理 (原本是 j-1)
+                
+                srect_x = (MARGIN + WIDTH) * (COLS + i) + MARGIN + BIGM
+                srect_y = (MARGIN + WIDTH) * visual_y_offset + MARGIN 
+                
+                # Sample 1 的 y 算法在你原本程式碼是 (j-1)，後面兩個是 (j+3) 和 (j+7)
+                # 為了配合你的排版習慣，這裡微調座標算法：
+                if k == 0: srect_y = (MARGIN + WIDTH) * (j-1) + MARGIN
+                
+                s_rect = pygame.Rect(srect_x, srect_y, WIDTH, HEIGHT)
+                
+                # 決定顏色
+                is_on = sample_data[k][j-1][i-1] == 1
+                
+                # 決定是否 Hover (滑鼠座標對應)
+                # Sample 1 的 y index 是 0~2, Sample 2 是 4~6, Sample 3 是 8~10
+                check_y = j-1 if k==0 else (j+3 if k==1 else j+7)
+                is_hover = (msx == i and msy == check_y)
+
+                if is_on:
+                    scolor = LRED if is_hover else RED
+                else:
+                    scolor = LGRAY if is_hover else GRAY
+
+                pygame.draw.rect(screen, scolor, s_rect)
     pygame.display.flip()
     clock.tick(60)
 
