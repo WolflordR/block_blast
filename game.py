@@ -13,6 +13,7 @@ BANANA = (227,207,87)
 BLACK = (0, 0, 0)
 DOUGELLO = (235,142,85)
 BLUE = (0,0,255)
+YELLOW = (0,255,0)
 
 WIDTH = 50       
 HEIGHT = 50      
@@ -97,23 +98,30 @@ while running:
             '''
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
-                 solver.reset(grid)
-
+                solver.reset(grid)
+            elif event.key == pygame.K_s:
+                solver.del_if_line(grid)
             elif event.key == pygame.K_SPACE: 
                 solver.turn_b_to_r(grid)
-
-                counts = []
-                for s in sample_data:
-                    count = sum(sum(row) for row in s)
-                    counts.append(count)
-            
-                result = solver.find_first_solution(grid, sample_data)
-            
-                if result:
+                solver.del_if_line(grid)
+                #result = solver.find_solution(grid, sample_data)
+                result = solver.sol(grid, sample_data)
+                '''if result:
                     idx, r, c, shape = result
                 
                     for dr, dc in shape:
                         grid[r + dr][c + dc] = 2 
+                        '''
+                if result:
+                    for move in result:
+                        idx, r, c, shape = move
+                        for dr, dc in shape:
+                            if idx == 0:
+                                grid[r + dr][c + dc] = 2
+                            elif idx == 1:
+                                grid[r + dr][c + dc] = 3
+                            elif idx == 2:
+                                grid[r + dr][c + dc] = 4
                 else:
                     print("fail")
         
@@ -131,6 +139,10 @@ while running:
                     color = LRED
             elif grid[row][column] == 2:
                 color = BLUE
+            elif grid[row][column] == 3:
+                color = BLACK
+            elif grid[row][column] == 4:
+                color = YELLOW
             elif row == hover_row and column == hover_col:
                 color = LGRAY
             else :
@@ -160,25 +172,6 @@ while running:
     screen.blit(text_surface, text_rect)
 
     #sample
-    '''
-    for i in range(1,6):
-        srect_x = (MARGIN + WIDTH) * (COLS + i) + MARGIN + BIGM
-        srect_y = MARGIN
-        s_rect = pygame.Rect(srect_x, srect_y, WIDTH, HEIGHT)
-        scolor = FORUMGOLD
-        if i == SAMPLE:
-            scolor = DOUGELLO
-        pygame.draw.rect(screen, scolor, s_rect)
-        text_surface = font.render(str(i), True, BLACK) 
-        text_rect = text_surface.get_rect(center=s_rect.center)
-        screen.blit(text_surface, text_rect)
-    match SAMPLE:
-        case 1:
-            print(1)
-        case 2: 
-            print(2)
-    '''
-
     mpos = pygame.mouse.get_pos()
     msx = (mpos[0] - (WIDTH + MARGIN) * COLS - MARGIN - BIGM) // (WIDTH + MARGIN)
     msy = mpos[1] // (HEIGHT + MARGIN)
