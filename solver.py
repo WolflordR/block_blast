@@ -1,18 +1,15 @@
-DELETE = 10
-SAMPLE1 = 11
-SAMPLE2 = 12
-SAMPLE3 = 13
-TEMP = 1001
 
-def turn_b_to_r(g) :
-    for i in range(0,8) :
+DELETE = 10
+
+def turn_b_to_r(g):
+    for i in range(0,8):
         for j in range(0,8):
-            if g[i][j] != 0 :
+            if g[i][j] != 0:
                 g[i][j] = 1
     return
 
-def reset(g) :
-    for i in range(0,8) :
+def reset(g):
+    for i in range(0,8):
         for j in range(0,8):
                 g[i][j] = 0
     return
@@ -29,7 +26,7 @@ def del_if_line(grid):
     for i in range(cols - 1, -1, -1):
         check = False
         for j in range(rows - 1, -1, -1):
-            if grid[j][i] == 0 :
+            if grid[j][i] == 0:
                 check = True
         if check == False:
             for j in range(rows - 1, -1, -1):
@@ -40,11 +37,10 @@ def del_if_line(grid):
             if grid[i][j] == DELETE:
                 grid[i][j] = 0
 
-
 def get_shape_coords(sample):
     coords = []
-    for r in range(3):
-        for c in range(3):
+    for r in range(5):
+        for c in range(5):
             if sample[r][c] == 1:
                 coords.append((r, c))
     
@@ -66,7 +62,6 @@ def can_place(grid, shape_coords, r, c):
             return False
     return True
 
-
 def find_solution(grid, samples):
     for idx, block in enumerate(samples):
         shape_coords = get_shape_coords(block)
@@ -79,35 +74,6 @@ def find_solution(grid, samples):
                 if can_place(grid, shape_coords, r, c):
                     return (idx, r, c, shape_coords)
     return None 
-
-'''def find_final_sol(grid, samples, active_indices,ans,allsol):
-    for i, block in enumerate(samples):
-        shape_coords = get_shape_coords(block)
-        if get_shape_coords(block) and (i not in active_indices):
-            active_indices.append(i)
-            for r in range(8):
-                for c in range(8):
-                    if can_place(grid, shape_coords, r, c):
-                        ans.append(i, r, c, shape_coords)
-                        find_final_sol(grid, samples, active_indices,ans,allsol)
-                        if len(active_indices) == 3:
-                            allsol.append(ans)
-                        
-    return 
-
-def sol(grid,samples):
-    active_indices = []
-    ans = []
-    allsol = []
-    for i, block in enumerate(samples):
-        if get_shape_coords(block):
-            active_indices.append(i)
-    return find_final_sol(grid, samples, active_indices,ans,allsol)
-
-'''
-
-# 這是你原本有的 helper function，我假設它們已經寫好了
-# from solver import get_shape_coords, can_place, del_if_line
 
 def sol(grid, samples):
     todo_indices = [] 
@@ -137,9 +103,7 @@ def find_final_sol(current_grid, samples, remaining_indices):
                     if result_path is not None:
                         current_move = (idx, r, c, shape_coords)
                         return [current_move] + result_path
-    
     return None
-
     
 
 
