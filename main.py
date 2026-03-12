@@ -27,11 +27,7 @@ BUTTON = 200
 BCKSAMPLE = 450
 
 font = pygame.font.SysFont("Arial", 20, bold=True)
-
-WINDOW_SIZE = [
-    (WIDTH + MARGIN) * COLS + MARGIN + BCKSAMPLE,
-    (HEIGHT + MARGIN) * max(ROWS, 17) + MARGIN + BUTTON
-]
+WINDOW_SIZE = [950, 1000]
 
 async def main():
     screen = pygame.display.set_mode(WINDOW_SIZE)
