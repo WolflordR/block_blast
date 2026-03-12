@@ -1,4 +1,3 @@
-
 DELETE = 10
 
 def turn_b_to_r(g):
