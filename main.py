@@ -65,6 +65,10 @@ async def main():
                 lockboty = (MARGIN + WIDTH) * ROWS + MARGIN 
                 LOCKBOTWIDTH = WIDTH * 2 + MARGIN
 
+                solvebotx = lockbotx
+                solveboty = lockboty + HEIGHT + MARGIN
+                SOLVEBOTWIDTH = LOCKBOTWIDTH
+
                 if 0 <= row < ROWS and 0 <= column < COLS and LOCK == 0:
                     if grid[row][column] == 0:
                         grid[row][column] = 1
@@ -73,6 +77,24 @@ async def main():
                 
                 elif lockbotx <= pos[0] < lockbotx + LOCKBOTWIDTH and lockboty <= pos[1] < lockboty + HEIGHT:
                     LOCK = (LOCK + 1) % 2
+
+                elif solvebotx <= pos[0] < solvebotx + SOLVEBOTWIDTH and solveboty <= pos[1] < solveboty + HEIGHT:
+                    solver.turn_b_to_r(grid)
+                    solver.del_if_line(grid)
+                    result = solver.sol(grid, sample_data)
+                    if result:
+                        for move in result:
+                            idx, r, c, shape = move
+                            for dr, dc in shape:
+                                if idx == 0:
+                                    grid[r + dr][c + dc] = 2
+                                elif idx == 1:
+                                    grid[r + dr][c + dc] = 3
+                                elif idx == 2:
+                                    grid[r + dr][c + dc] = 4
+                    else:
+                        print("fail")
+
                 elif 1 <= sx <= 5 and LOCK == 0:
                     s_col = sx - 1  
                     target_s = -1  
@@ -154,6 +176,21 @@ async def main():
             text_surface = font.render("UNLOCK", True, BLACK) 
         text_rect = text_surface.get_rect(center=bot_rect.center)
         screen.blit(text_surface, text_rect)
+
+        solvebotx = lockbotx
+        solveboty = lockboty + HEIGHT + MARGIN
+        SOLVEBOTWIDTH = LOCKBOTWIDTH
+
+        if solvebotx <= mouse_pos[0] < solvebotx + SOLVEBOTWIDTH and solveboty <= mouse_pos[1] < solveboty + HEIGHT:
+            solvecolor = BANANA
+        else:
+            solvecolor = FORUMGOLD
+
+        solve_rect = pygame.Rect(solvebotx, solveboty, SOLVEBOTWIDTH, HEIGHT)
+        pygame.draw.rect(screen, solvecolor, solve_rect)
+        solve_text_surface = font.render("SOLVE", True, BLACK)
+        solve_text_rect = solve_text_surface.get_rect(center=solve_rect.center)
+        screen.blit(solve_text_surface, solve_text_rect)
 
         mpos = pygame.mouse.get_pos()
         msx = (mpos[0] - (WIDTH + MARGIN) * COLS - MARGIN - BIGM) // (WIDTH + MARGIN)
